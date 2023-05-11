@@ -1,0 +1,24 @@
+# Development and build files
+/docs
+/tests
+/tsconfig.json
+/.eslintrc.js
+/.gitignore
+/README.md
+/CHANGELOG.md
+/yarn.lock
+/package-lock.json
+
+# Source files
+/src
+
+# Editor and IDE files
+.vscode
+.idea
+
+# Configuration files
+/.npmrc
+/.npmignore
+
+# Other
+node_modules

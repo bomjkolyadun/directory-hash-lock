@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "target": "ES5", // Set the target to ES5
+        "outDir": "dist",
+        "strict": true,
+        "esModuleInterop": true,
+        "lib": [
+            "ES2015",
+            "DOM"
+        ] // Add 'ES2015' to the 'lib' option
+    },
+    "include": [
+        "src"
+    ]
+}
