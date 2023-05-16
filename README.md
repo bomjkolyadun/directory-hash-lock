@@ -1,5 +1,7 @@
 # Directory Hash Lock
 
+![build](https://github.com/bomjkolyadun/directory-hash-lock/actions/workflows/node.js.yml/badge.svg)
+
 `directory-hash-lock` is a lightweight and easy-to-use npm package for generating a hash of a directory's contents and creating a lock file with that hash. It's useful for detecting changes in the contents of a directory, such as verifying the integrity of files or tracking changes in version control systems.
 
 ## Features
