@@ -27,37 +27,51 @@ describe('hashDirectory', () => {
     expect(hash1).toEqual(hash2);
   });
 
-  it('should include the filename in the hash', async () => {
-    const file1Path = path.join(testDirectoryPath, 'file1.txt');
-    const file2Path = path.join(testDirectoryPath, 'subdir', 'file2.txt');
+  it('should only hash files matching the provided patterns', async () => {
+    const hash1 = await hashDirectory(testDirectoryPath, 'sha256', ['**/file1.txt']);
+    const hash2 = await hashDirectory(testDirectoryPath, 'sha256', ['**/*.txt']);
 
-    const file1Content = await fs.readFile(file1Path, 'utf-8');
+    expect(hash1).not.toEqual(hash2);
+
+    const file2Path = path.join(testDirectoryPath, 'subdir', 'file2.txt');
     const file2Content = await fs.readFile(file2Path, 'utf-8');
 
-    const hash1 = await hashDirectory(testDirectoryPath);
-    const hash2 = await hashDirectory(testDirectoryPath);
+    // Modify a file that is not included in the hash
+    await fs.writeFile(file2Path, 'Modified content', 'utf-8');
 
-    // Modify file content
-    await fs.writeFile(file1Path, 'Modified content 1', 'utf-8');
-    await fs.writeFile(file2Path, 'Modified content 2', 'utf-8');
-
-    const hash3 = await hashDirectory(testDirectoryPath);
+    const hash3 = await hashDirectory(testDirectoryPath, 'sha256', ['**/file1.txt']);
 
     // Restore file content
-    await fs.writeFile(file1Path, file1Content, 'utf-8');
     await fs.writeFile(file2Path, file2Content, 'utf-8');
 
-    const hash4 = await hashDirectory(testDirectoryPath);
+    expect(hash1).toEqual(hash3);
+  });
 
-    expect(hash1).toEqual(hash2);
-    expect(hash1).not.toEqual(hash3);
-    expect(hash1).toEqual(hash4);
+  it('should only hash files matching the provided patterns', async () => {
+    const hash1 = await hashDirectory(testDirectoryPath, 'sha256', ['**/file1.txt']);
+    const hash2 = await hashDirectory(testDirectoryPath, 'sha256', ['**/*.txt']);
+
+    expect(hash1).not.toEqual(hash2);
+
+    const file2Path = path.join(testDirectoryPath, 'subdir', 'file2.txt');
+    const file2Content = await fs.readFile(file2Path, 'utf-8');
+
+    // Modify a file that is not included in the hash
+    await fs.writeFile(file2Path, 'Modified content', 'utf-8');
+
+    const hash3 = await hashDirectory(testDirectoryPath, 'sha256', ['**/file1.txt']);
+
+    // Restore file content
+    await fs.writeFile(file2Path, file2Content, 'utf-8');
+
+    expect(hash1).toEqual(hash3);
   });
 
   afterAll(async () => {
     await fs.rm(testDirectoryPath, { recursive: true, force: true });
   });
 });
+
 
 describe('createLockFile', () => {
   beforeAll(async () => {
@@ -68,7 +82,7 @@ describe('createLockFile', () => {
 
   afterEach(async () => {
     // Remove lock file after each test
-    await fs.unlink(lockFilePath).catch(() => {});
+    await fs.unlink(lockFilePath).catch(() => { });
   });
 
   it('should create a lock file with the correct hash', async () => {
