@@ -1,16 +1,8 @@
 #!/usr/bin/env node
 import { createLockFile } from "./hasher";
+import { parseArgs } from "./argsParser";
 
-const args = process.argv.slice(2);
-const argMap = args.reduce<{ [key: string]: string }>((acc, arg) => {
-  const [key, value] = arg.split('=');
-  acc[key] = value;
-  return acc;
-}, {});
-
-const directoryPath = argMap['--path'] || './patches';
-const patterns = argMap['--patterns'] ? argMap['--patterns'].split(',') : [];
-const lockFilePath = `${directoryPath}.lock`;
+const { directoryPath, patterns, lockFilePath } = parseArgs(process.argv.slice(2));
 
 createLockFile(directoryPath, lockFilePath, patterns)
   .then(() => console.log('Lock file created.'))
