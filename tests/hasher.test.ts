@@ -1,23 +1,13 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { hashDirectory, createLockFile } from '../src/hasher';
+import { createTestDirectory } from './utils';
 
 const testDirectoryPath = './tests/test-dir';
 
-const createTestDirectory = async () => {
-  try {
-    await fs.access(testDirectoryPath, fs.constants.F_OK);
-  } catch {
-    await fs.mkdir(testDirectoryPath, { recursive: true });
-    await fs.writeFile(path.join(testDirectoryPath, 'file1.txt'), 'File 1 content', 'utf-8');
-    await fs.mkdir(path.join(testDirectoryPath, 'subdir'), { recursive: true });
-    await fs.writeFile(path.join(testDirectoryPath, 'subdir', 'file2.txt'), 'File 2 content', 'utf-8');
-  }
-};
-
 describe('hashDirectory', () => {
   beforeAll(async () => {
-    await createTestDirectory();
+    await createTestDirectory(testDirectoryPath);
   });
 
   it('should generate a consistent hash for a given directory', async () => {
@@ -51,6 +41,9 @@ describe('hashDirectory', () => {
     const hash1 = await hashDirectory(testDirectoryPath, 'sha256', ['**/file1.txt']);
     const hash2 = await hashDirectory(testDirectoryPath, 'sha256', ['**/*.txt']);
 
+    const hashAll = await hashDirectory(testDirectoryPath, 'sha256', []);
+    const emptyHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+
     expect(hash1).not.toEqual(hash2);
 
     const file2Path = path.join(testDirectoryPath, 'subdir', 'file2.txt');
@@ -65,6 +58,10 @@ describe('hashDirectory', () => {
     await fs.writeFile(file2Path, file2Content, 'utf-8');
 
     expect(hash1).toEqual(hash3);
+    expect(emptyHash).not.toEqual(hash3);
+    expect(emptyHash).not.toEqual(hash2);
+    expect(emptyHash).not.toEqual(hash1);
+    expect(emptyHash).not.toEqual(hashAll);
   });
 
   afterAll(async () => {
@@ -75,7 +72,7 @@ describe('hashDirectory', () => {
 
 describe('createLockFile', () => {
   beforeAll(async () => {
-    await createTestDirectory();
+    await createTestDirectory(testDirectoryPath);
   });
 
   const lockFilePath = './tests/test-dir.lock';
