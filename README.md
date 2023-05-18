@@ -15,24 +15,32 @@
 
 ## Installation
 
-Install the package using npm or yarn:
+Install the package using npm or yarn as a dev dependency:
 
 ```sh
-npm install directory-hash-lock
+npm install --save-dev directory-hash-lock
 ```
 
 or
 
 ```sh
-yarn add directory-hash-lock
+yarn add --dev directory-hash-lock
 ```
 
 ## Usage
 
-From the command line:
+From the command line (yarn):
 
 ```sh
-node dist/cli.js --path /path/to/your/directory --patterns "**/*.txt,**/*.json"
+yarn run directory-hash-lock --path=/path/to/your/directory --patterns="**/*.txt,**/*.json"
+
+```
+
+npm:
+
+```sh
+npm run directory-hash-lock --path=/path/to/your/directory --patterns="**/*.txt,**/*.json"
+
 ```
 
 Replace `/path/to/your/directory` with the actual path of the directory you want to use and `**/*.txt,**/*.json` with your desired file patterns (comma-separated). If no directory path is provided, it will default to `./patches`. If no patterns are provided, it will default to include all files (`**/*`).
