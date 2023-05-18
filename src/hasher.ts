@@ -34,7 +34,7 @@ async function getFilesRecursively(directoryPath: string, patterns: string[]): P
 }
 
 function matchesPatterns(filePath: string, patterns: string[]): boolean {
-  return patterns.some(pattern => minimatch(filePath, pattern));
+  return patterns.length === 0 || patterns.some(pattern => minimatch(filePath, pattern));
 }
 
 export async function createLockFile(directoryPath: string, lockFilePath: string, patterns: string[] = []): Promise<void> {
