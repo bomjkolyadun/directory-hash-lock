@@ -45,10 +45,24 @@ function matchesPatterns(filePath: string, patterns: string[]): boolean {
   return patterns.length === 0 || patterns.some(pattern => minimatch(filePath, pattern));
 }
 
-export async function createLockFile(directoryPath: string, lockFilePath: string, patterns: string[] = []): Promise<void> {
+export async function createLockFile(directoryPath: string, lockFilePath: string, patterns: string[] = []): Promise<boolean> {
   try {
     const directoryHash = await hashDirectory(directoryPath, 'sha256', patterns);
-    await fs.promises.writeFile(lockFilePath, directoryHash, 'utf-8');
+
+    // Only overwrite the lock file if the hash has changed
+    let existingHash = '';
+    try {
+      existingHash = await fs.promises.readFile(lockFilePath, 'utf-8');
+    } catch (error) {
+      // Ignore error in case the lock file does not exist
+    }
+
+    if (directoryHash !== existingHash) {
+      await fs.promises.writeFile(lockFilePath, directoryHash, 'utf-8');
+      return true;
+    }
+
+    return false;
   } catch (error) {
     throw error;
   }
