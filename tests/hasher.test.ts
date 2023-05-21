@@ -4,6 +4,7 @@ import { hashDirectory, createLockFile } from '../src/hasher';
 import { createTestDirectory } from './utils';
 
 const testDirectoryPath = './tests/test-dir';
+const emptyHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
 describe('hashDirectory', () => {
   beforeAll(async () => {
@@ -42,7 +43,6 @@ describe('hashDirectory', () => {
     const hash2 = await hashDirectory(testDirectoryPath, 'sha256', ['**/*.txt']);
 
     const hashAll = await hashDirectory(testDirectoryPath, 'sha256', []);
-    const emptyHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
     expect(hash1).not.toEqual(hash2);
 
@@ -69,6 +69,34 @@ describe('hashDirectory', () => {
   });
 });
 
+describe('hashDirectory on identical dirs', () => {
+  const testDir1 = './tests/test-dir-1';
+  const testDir2 = './tests/test-dir-2';
+
+  beforeEach(async () => {
+    // Create the directories if they don't exist
+    await fs.mkdir(testDir1, { recursive: true });
+    await fs.mkdir(testDir2, { recursive: true });
+
+    // Create a file in each directory
+    await fs.writeFile(path.join(testDir1, 'file1.txt'), 'Same content');
+    await fs.writeFile(path.join(testDir2, 'file2.txt'), 'Same content');
+  });
+
+  afterEach(async () => {
+    // Clean up: remove the directories and their contents
+    await fs.rm(testDir1, { recursive: true, force: true });
+    await fs.rm(testDir2, { recursive: true, force: true });
+  });
+
+  it('should produce the same hash for directories with different file names but same contents', async () => {
+    const hash1 = await hashDirectory(testDir1);
+    const hash2 = await hashDirectory(testDir2);
+    expect(hash1).not.toEqual(hash2);
+    expect(hash1).not.toEqual(emptyHash);
+    expect(hash2).not.toEqual(emptyHash);
+  });
+});
 
 describe('createLockFile', () => {
   beforeAll(async () => {
