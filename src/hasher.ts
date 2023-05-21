@@ -11,6 +11,7 @@ export async function hashDirectory(directoryPath: string, algo: string = 'sha25
     const hash = crypto.createHash(algo);
     for (const file of sortedFiles) {
       const fileContent = await fs.promises.readFile(file);
+      hash.update(file);
       hash.update(fileContent); // Only hash the file content
     }
     return hash.digest('hex');
