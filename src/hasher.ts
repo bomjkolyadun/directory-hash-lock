@@ -46,19 +46,34 @@ function matchesPatterns(filePath: string, patterns: string[]): boolean {
   return patterns.length === 0 || patterns.some(pattern => minimatch(filePath, pattern));
 }
 
-export async function createLockFile(directoryPath: string, lockFilePath: string, patterns: string[] = []): Promise<boolean> {
+export async function isLockFileCurrent(directoryPath: string, lockFilePath: string, patterns: string[] = []): Promise<boolean> {
+  try {
+    const currentDirectoryHash = await hashDirectory(directoryPath, 'sha256', patterns);
+    const lockFileHash = await fs.promises.readFile(lockFilePath, 'utf-8').catch(() => '');
+    return lockFileHash === currentDirectoryHash;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function createLockFile(directoryPath: string, lockFilePath: string, patterns: string[] = [], frozen: boolean = false): Promise<boolean> {
   try {
     const directoryHash = await hashDirectory(directoryPath, 'sha256', patterns);
-
-    // Only overwrite the lock file if the hash has changed
     let existingHash = '';
+
     try {
       existingHash = await fs.promises.readFile(lockFilePath, 'utf-8');
     } catch (error) {
       // Ignore error in case the lock file does not exist
     }
 
-    if (directoryHash !== existingHash) {
+    if (frozen) {
+      const isCurrent = await isLockFileCurrent(directoryPath, lockFilePath, patterns);
+      if (!isCurrent) {
+        throw new Error('Lock file hash differs from the current directory hash');
+      }
+      return false;
+    } else if (directoryHash !== existingHash) {
       await fs.promises.writeFile(lockFilePath, directoryHash, 'utf-8');
       return true;
     }

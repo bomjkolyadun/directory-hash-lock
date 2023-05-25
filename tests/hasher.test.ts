@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { hashDirectory, createLockFile } from '../src/hasher';
+import { hashDirectory, createLockFile, isLockFileCurrent } from '../src/hasher';
 import { createTestDirectory } from './utils';
 
 const testDirectoryPath = './tests/test-dir';
@@ -120,5 +120,40 @@ describe('createLockFile', () => {
 
   afterAll(async () => {
     await fs.rm(testDirectoryPath, { recursive: true, force: true });
+  });
+});
+
+describe('isLockFileCurrent', () => {
+  beforeAll(async () => {
+    await createTestDirectory(testDirectoryPath);
+  });
+
+  const lockFilePath = './tests/test-dir.lock';
+
+  it('should return false if the hash of the directory differs from the hash in the lockfile', async () => {
+    const initialHash = await hashDirectory(testDirectoryPath);
+    await createLockFile(testDirectoryPath, lockFilePath);
+
+    // Change the content of the directory
+    const filePath = path.join(testDirectoryPath, 'file1.txt');
+    await fs.writeFile(filePath, 'Modified content', 'utf-8');
+
+    const isCurrent = await isLockFileCurrent(testDirectoryPath, lockFilePath);
+    expect(isCurrent).toBe(false);
+
+    // Restore original content
+    await fs.writeFile(filePath, 'File 1 content', 'utf-8');
+  });
+
+  it('should return true if the hash of the directory is the same as the hash in the lockfile', async () => {
+    await createLockFile(testDirectoryPath, lockFilePath);
+
+    const isCurrent = await isLockFileCurrent(testDirectoryPath, lockFilePath);
+    expect(isCurrent).toBe(true);
+  });
+
+  afterAll(async () => {
+    await fs.rm(testDirectoryPath, { recursive: true, force: true });
+    await fs.unlink(lockFilePath).catch(() => { });
   });
 });
