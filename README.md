@@ -29,21 +29,41 @@ yarn add --dev directory-hash-lock
 
 ## Usage
 
-From the command line (yarn):
+### `--path`
+
+Specifies the absolute or relative path to the directory that you want to hash. If no path is provided, it defaults to `./patches`.
+
+Example usage:
 
 ```sh
-yarn run directory-hash-lock --path=/path/to/your/directory --patterns="**/*.txt,**/*.json"
-
+npm run directory-hash-lock -- --path=/path/to/your/directory
 ```
 
-npm:
+### `--patterns`
+
+Specifies the wildcard patterns to match the files to be included in the hash. Multiple patterns should be comma-separated. If no patterns are provided, it defaults to include all files (`**/*`).
+
+Example usage:
 
 ```sh
-npm run directory-hash-lock --path=/path/to/your/directory --patterns="**/*.txt,**/*.json"
-
+npm run directory-hash-lock -- --patterns="**/*.txt,**/*.json"
 ```
 
-Replace `/path/to/your/directory` with the actual path of the directory you want to use and `**/*.txt,**/*.json` with your desired file patterns (comma-separated). If no directory path is provided, it will default to `./patches`. If no patterns are provided, it will default to include all files (`**/*`).
+### `--frozen-lockfile`
+
+Prevents the tool from overwriting an existing lock file if its hash differs from the current directory hash. This can be useful if you want to ensure that the contents of the directory haven't changed.
+
+Example usage:
+
+```sh
+npm run directory-hash-lock -- --frozen-lockfile
+```
+
+All options can be combined as needed. For instance, to hash a specific directory and only include `.txt` files, without overwriting an existing lock file, you could run:
+
+```sh
+npm run directory-hash-lock -- --path=/path/to/your/directory --patterns="**/*.txt" --frozen-lockfile
+```
 
 ## API Documentation
 
@@ -57,14 +77,14 @@ Generates a hash of the files in a directory and its subdirectories.
 
 Returns a Promise that resolves with a string representing the hexadecimal hash of the directory's contents.
 
-### createLockFile(directoryPath: string, lockFilePath: string, algo: string = 'sha256', patterns: string[] = ['**/*']): Promise<void>
+### createLockFile(directoryPath: string, lockFilePath: string, patterns: string[] = ['**/*'], frozenLockfile: boolean = false): Promise<void>
 
-Generates a hash of a directory's contents and writes it to a lock file.
+Generates a hash of a directory's contents and writes it to a lock file. If the `frozenLockfile` parameter is set to `true`, it will not overwrite the existing lock file if its hash differs from the current directory hash.
 
 - `directoryPath`: The absolute or relative path to the directory.
 - `lockFilePath`: The absolute or relative path to the lock file. The lock file will be created if it does not exist.
-- `algo`: The algorithm to be used for hashing. Defaults to 'sha256'. Other values can be any algorithm supported by Node.js `crypto` module.
 - `patterns`: An array of wildcard patterns to match the files to be included in the hash. Defaults to all files (`['**/*']`).
+- `frozenLockfile`: A boolean indicating whether the lock file should be overwritten if the hash differs. Defaults to `false`.
 
 Returns a Promise that resolves when the lock file has been written.
 
